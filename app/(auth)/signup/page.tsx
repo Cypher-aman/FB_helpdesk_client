@@ -1,13 +1,33 @@
 'use client';
+import { GQLClient } from '@/clients/api';
+import { SignupMutation } from '@/graphql/mutations/user';
 import Link from 'next/link';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 const SignUp = () => {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
   });
+
+  const onSubmit = async (e: React.SyntheticEvent) => {
+    try {
+      e.preventDefault();
+      const { createUser } = await GQLClient.request(SignupMutation, {
+        payload: formData,
+      });
+
+      toast.success('Signup successfully');
+      router.push('/login');
+    } catch (error: any) {
+      return toast.error('Unable to signup');
+    }
+  };
 
   return (
     <div className="w-screen h-screen bg-blue-900 flex justify-center items-center">
@@ -15,7 +35,7 @@ const SignUp = () => {
         <h1 className="py-4 font-semibold text-center">Create an account</h1>
         <form
           className="flex text-sm font-medium flex-col "
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={(e) => onSubmit(e)}
         >
           <label htmlFor="name">Name</label>
           <input

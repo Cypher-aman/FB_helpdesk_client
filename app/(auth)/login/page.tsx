@@ -1,12 +1,37 @@
 'use client';
+import { GQLClient } from '@/clients/api';
+import { LoginQuery } from '@/graphql/queries/user';
 import Link from 'next/link';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 const Login = () => {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+
+  const onSubmit = async (e: React.SyntheticEvent) => {
+    try {
+      e.preventDefault();
+      const { signin: token } = await GQLClient.request(LoginQuery, {
+        payload: formData,
+      });
+
+      if (!token) {
+        return toast.error('Invalid credentials');
+      }
+
+      window.localStorage.setItem('helpdesk_token', token);
+
+      router.push('/page');
+    } catch (error: any) {
+      return toast.error('Invalid credentials');
+    }
+  };
 
   return (
     <div className="w-screen h-screen bg-blue-900 flex justify-center items-center">
@@ -16,7 +41,7 @@ const Login = () => {
         </h1>
         <form
           className="flex text-sm font-medium flex-col "
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={(e) => onSubmit(e)}
         >
           <label htmlFor="email">Email</label>
           <input

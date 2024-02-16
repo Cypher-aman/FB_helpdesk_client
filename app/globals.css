@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.facebook-btn {
+  @apply w-full py-2 rounded bg-blue-900 text-white mt-4;
+}

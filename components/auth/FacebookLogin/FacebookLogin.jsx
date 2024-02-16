@@ -1,9 +1,11 @@
 'use client';
 
+import { GQLClient } from '@/clients/api';
+import { CreateFBConnectionMutation } from '@/graphql/mutations/page';
 import { useEffect } from 'react';
 import FacebookLogin from 'react-facebook-login';
 
-const FacebookLoginButton = () => {
+const FacebookLoginButton = ({ setPages, setLoading }) => {
   useEffect(() => {
     window.fbAsyncInit = function () {
       window.FB.init({
@@ -25,9 +27,20 @@ const FacebookLoginButton = () => {
     })(document, 'script', 'facebook-jssdk');
   }, []);
 
-  const responseFacebook = (response) => {
-    localStorage.setItem('user', JSON.stringify(response));
-    console.log(response);
+  const responseFacebook = async (response) => {
+    if (response.status === 'unknown') {
+      return null;
+    }
+    const { createFBConnection: pagesData } = await GQLClient.request(
+      CreateFBConnectionMutation,
+      {
+        token: response.accessToken,
+      }
+    );
+
+    setPages(pagesData);
+    setLoading(false);
+    console.log('pages', pagesData);
   };
 
   return (
@@ -37,8 +50,10 @@ const FacebookLoginButton = () => {
         autoLoad={true}
         fields="name,email,picture"
         callback={responseFacebook}
-        scope="ads_read,ads_management"
+        scope="pages_show_list, pages_messaging, pages_messaging_subscriptions, pages_read_engagement, pages_manage_metadata"
         disableMobileRedirect={true}
+        textButton="Connect Pages"
+        cssClass="facebook-btn"
       />
     </div>
   );
